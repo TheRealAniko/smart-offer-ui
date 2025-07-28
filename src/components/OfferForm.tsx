@@ -69,6 +69,12 @@ const OfferForm = () => {
         });
     };
 
+    const calculateTotal = (): number => {
+        return offer.positions.reduce((sum, pos) => {
+            return sum + pos.unitPrice * pos.quantity;
+        }, 0);
+    };
+
     return (
         <form className="space-y-4">
             <div className="flex flex-col">
@@ -315,6 +321,10 @@ const OfferForm = () => {
                             </li>
                         ))}
                     </ul>
+                </div>
+
+                <div className="mt-4 font-semibold">
+                    Gesamtsumme: {calculateTotal().toFixed(2)}€
                 </div>
             </div>
         </form>
