@@ -1,5 +1,6 @@
 import { type Position, type Customer, type Offer } from "smart-offer-types";
 import { useState } from "react";
+import { SquarePen, Delete } from "lucide-react";
 
 const OfferForm = () => {
     const [offer, setOffer] = useState<Offer>({
@@ -46,13 +47,33 @@ const OfferForm = () => {
         }));
     };
 
-    const handleAddPosition = () => {
+    const [editIndex, setEditIndex] = useState<number | null>(null);
+
+    const handleEditClick = (index: number) => {
+        const positionToEdit = offer.positions[index];
+        setNewPosition(positionToEdit);
+        setEditIndex(index);
+    };
+
+    const handleSavePosition = () => {
         if (!newPosition.label.trim()) return;
 
-        setOffer((prevOffer) => ({
-            ...prevOffer,
-            positions: [...prevOffer.positions, newPosition],
-        }));
+        if (editIndex !== null) {
+            const updatedPositions = [...offer.positions];
+            updatedPositions[editIndex] = newPosition;
+
+            setOffer((prevOffer) => ({
+                ...prevOffer,
+                positions: updatedPositions,
+            }));
+
+            setEditIndex(null);
+        } else {
+            setOffer((prevOffer) => ({
+                ...prevOffer,
+                positions: [...prevOffer.positions, newPosition],
+            }));
+        }
 
         setNewPosition({
             label: "",
@@ -73,6 +94,32 @@ const OfferForm = () => {
         return offer.positions.reduce((sum, pos) => {
             return sum + pos.unitPrice * pos.quantity;
         }, 0);
+    };
+
+    const handleDeletePostion = (indexToDelete: number) => {
+        setOffer((prev) => ({
+            ...prev,
+            positions: prev.positions.filter(
+                (_, index) => index !== indexToDelete
+            ),
+        }));
+    };
+
+    const handleCancelEdit = () => {
+        setEditIndex(null);
+        setNewPosition({
+            label: "",
+            quantity: 1,
+            unit: "stück",
+            unitPrice: 0,
+            material: "",
+            type: undefined,
+            dimensions: {
+                length: undefined,
+                width: undefined,
+                height: undefined,
+            },
+        });
     };
 
     return (
@@ -299,12 +346,25 @@ const OfferForm = () => {
                         }
                     />
                 </div>
-                <button
-                    type="button"
-                    onClick={handleAddPosition}
-                    className="mt-4 w-full rounded bg-blue-600 hover:bg-blue-700 py-2 px-6 text-white sm:w-auto ">
-                    Position hinzufügen
-                </button>
+                <div className="flex gap-8">
+                    <button
+                        type="button"
+                        onClick={handleSavePosition}
+                        className="mt-4 w-full rounded bg-blue-600 hover:bg-blue-700 py-2 px-6 text-white sm:w-auto ">
+                        {editIndex !== null
+                            ? "Position speichern"
+                            : "Position hinzufügen"}
+                    </button>
+                    {editIndex !== null && (
+                        <button
+                            type="button"
+                            onClick={handleCancelEdit}
+                            className="mt-4 flex items-center border border-gray-500 py-2 px-6 text-gray-500 hover:text-gray-700">
+                            Bearbeitung abbrechen
+                        </button>
+                    )}
+                </div>
+
                 <div className="mt-6">
                     <h3 className="mb-2 text-lg font-semibold">Positionen</h3>
                     <ul className="space-y-2">
@@ -318,6 +378,20 @@ const OfferForm = () => {
                                 <span>
                                     {(pos.unitPrice * pos.quantity).toFixed(2)}€
                                 </span>
+
+                                <button
+                                    type="button"
+                                    onClick={() => handleEditClick(index)}
+                                    className="text-blue-600 hover:text-blue-800">
+                                    <SquarePen />
+                                </button>
+
+                                <button
+                                    type="button"
+                                    onClick={() => handleDeletePostion(index)}
+                                    className="text-red-600 hover:text-red-800">
+                                    <Delete />
+                                </button>
                             </li>
                         ))}
                     </ul>
