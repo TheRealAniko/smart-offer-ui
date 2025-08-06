@@ -1,9 +1,24 @@
 import { type Position, type Customer, type Offer } from "smart-offer-types";
 import { useState } from "react";
 import { SquarePen, Delete } from "lucide-react";
+import { v4 as uuidv4 } from "uuid";
 
 const OfferForm = () => {
-    const [offer, setOffer] = useState<Offer>({
+    const initialPosition: Position = {
+        label: "",
+        quantity: 1,
+        unit: "stück",
+        unitPrice: 0,
+        material: "",
+        type: undefined,
+        dimensions: {
+            length: undefined,
+            width: undefined,
+            height: undefined,
+        },
+    };
+
+    const initialOffer: Offer = {
         id: "temp-id",
         title: "",
         customer: {
@@ -15,13 +30,10 @@ const OfferForm = () => {
         },
         positions: [],
         createdAt: new Date(),
-    });
-    const [newPosition, setNewPosition] = useState<Position>({
-        label: "",
-        quantity: 1,
-        unit: "stück",
-        unitPrice: 0,
-    });
+    };
+
+    const [offer, setOffer] = useState<Offer>(initialOffer);
+    const [newPosition, setNewPosition] = useState<Position>(initialPosition);
 
     const handleOfferChange = (field: keyof Offer, value: string) => {
         setOffer((prev) => ({
@@ -75,19 +87,7 @@ const OfferForm = () => {
             }));
         }
 
-        setNewPosition({
-            label: "",
-            quantity: 1,
-            unit: "stück",
-            unitPrice: 0,
-            material: "",
-            type: undefined,
-            dimensions: {
-                length: undefined,
-                width: undefined,
-                height: undefined,
-            },
-        });
+        setNewPosition(initialPosition);
     };
 
     const calculateTotal = (): number => {
@@ -107,19 +107,33 @@ const OfferForm = () => {
 
     const handleCancelEdit = () => {
         setEditIndex(null);
-        setNewPosition({
-            label: "",
-            quantity: 1,
-            unit: "stück",
-            unitPrice: 0,
-            material: "",
-            type: undefined,
-            dimensions: {
-                length: undefined,
-                width: undefined,
-                height: undefined,
-            },
-        });
+        setNewPosition(initialPosition);
+    };
+
+    const saveOffer = () => {
+        // Neue ID generieren
+        const offerWithId = {
+            ...offer,
+            id: offer.id === "temp-id" ? uuidv4() : offer.id,
+        };
+
+        // Angebot aus localStorage laden (falls es existiert)
+        const storedOffers = localStorage.getItem("offers");
+        const parsedOffers: Offer[] = storedOffers
+            ? JSON.parse(storedOffers)
+            : [];
+
+        // Aktuelles Angebot hinzufügen oder aktualisieren
+        const updatedOffers = [...parsedOffers, offerWithId];
+
+        // Angebote in localStorage speichern
+        localStorage.setItem("offers", JSON.stringify(updatedOffers));
+
+        //UI Feedback
+        alert("Angebot erfolgreich gespeichert!");
+
+        // Formular zurücksetzen
+        setOffer(initialOffer);
     };
 
     return (
@@ -400,6 +414,14 @@ const OfferForm = () => {
                 <div className="mt-4 font-semibold">
                     Gesamtsumme: {calculateTotal().toFixed(2)}€
                 </div>
+            </div>
+            <div className="flex justify-end mt-6">
+                <button
+                    type="button"
+                    onClick={saveOffer}
+                    className="rounded bg-green-600 hover:bg-green-700 py-2 px-6 text-white">
+                    Angebot speichern
+                </button>
             </div>
         </form>
     );
