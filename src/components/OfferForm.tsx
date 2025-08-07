@@ -2,6 +2,7 @@ import { type Position, type Customer, type Offer } from "smart-offer-types";
 import { useState } from "react";
 import { SquarePen, Delete } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
+import { toast } from "react-toastify";
 
 const OfferForm = () => {
     const initialPosition: Position = {
@@ -130,7 +131,7 @@ const OfferForm = () => {
         localStorage.setItem("offers", JSON.stringify(updatedOffers));
 
         //UI Feedback
-        alert("Angebot erfolgreich gespeichert!");
+        toast.success("Angebot erfolgreich gespeichert!");
 
         // Formular zurücksetzen
         setOffer(initialOffer);

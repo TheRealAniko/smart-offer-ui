@@ -1,5 +1,7 @@
 import "./index.css";
 import OfferForm from "./components/OfferForm";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function App() {
     return (
@@ -8,6 +10,7 @@ function App() {
                 SmartOffer Formular
             </h1>
             <OfferForm />
+            <ToastContainer />
         </main>
     );
 }
