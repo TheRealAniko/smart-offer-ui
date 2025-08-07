@@ -4,6 +4,18 @@ import { SquarePen, Delete } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
 import { toast } from "react-toastify";
 
+type FormErrors = {
+    title?: string;
+    customerName?: string;
+    positions?: string;
+};
+type PositionErrors = {
+    label?: string;
+    quantity?: string;
+    unit?: string;
+    unitPrice?: string;
+};
+
 const OfferForm = () => {
     const initialPosition: Position = {
         label: "",
@@ -35,6 +47,8 @@ const OfferForm = () => {
 
     const [offer, setOffer] = useState<Offer>(initialOffer);
     const [newPosition, setNewPosition] = useState<Position>(initialPosition);
+    const [formErrors, setFormErrors] = useState<FormErrors>({});
+    const [positionErrors, setPositionErrors] = useState<PositionErrors>({});
 
     const handleOfferChange = (field: keyof Offer, value: string) => {
         setOffer((prev) => ({
@@ -69,6 +83,25 @@ const OfferForm = () => {
     };
 
     const handleSavePosition = () => {
+        // Validierung der Position
+        const errors: PositionErrors = {};
+        if (!newPosition.label.trim()) {
+            errors.label = "Bezeichnung ist erforderlich.";
+        }
+        if (!newPosition.quantity || newPosition.quantity <= 0) {
+            errors.quantity = "Menge muss größer als 0 sein.";
+        }
+        if (!newPosition.unit) {
+            errors.unit = "Einheit ist erforderlich.";
+        }
+        if (newPosition.unitPrice < 0 || isNaN(newPosition.unitPrice)) {
+            errors.unitPrice = "Einzelpreis darf nicht negativ sein.";
+        }
+        if (Object.keys(errors).length > 0) {
+            setPositionErrors(errors);
+            return;
+        }
+
         if (!newPosition.label.trim()) return;
 
         if (editIndex !== null) {
@@ -110,8 +143,27 @@ const OfferForm = () => {
         setEditIndex(null);
         setNewPosition(initialPosition);
     };
+    // Validierung der Eingaben
+    const validateForm = (): boolean => {
+        const errors: FormErrors = {};
+
+        if (!offer.title.trim()) {
+            errors.title = "Angebotstitel ist erforderlich.";
+        }
+        if (!offer.customer.name.trim()) {
+            errors.customerName = "Kundenname ist erforderlich.";
+        }
+        if (offer.positions.length === 0) {
+            errors.positions = "Mindestens eine Position ist erforderlich.";
+        }
+        setFormErrors(errors);
+        return Object.keys(errors).length === 0;
+    };
 
     const saveOffer = () => {
+        // Validierung durchführen
+        if (!validateForm()) return;
+
         // Neue ID generieren
         const offerWithId = {
             ...offer,
@@ -148,9 +200,16 @@ const OfferForm = () => {
                     type="text"
                     value={offer.title}
                     onChange={(e) => handleOfferChange("title", e.target.value)}
-                    className="border border-gray-300 p-2 rounded"
+                    className={`p-2 rounded border ${
+                        formErrors.title ? "border-red-500" : "border-gray-300"
+                    }`}
                     placeholder="Angebotstitel"
                 />
+                {formErrors.title && (
+                    <p className="text-sm text-red-500 mt-1">
+                        {formErrors.title}
+                    </p>
+                )}
             </div>
 
             <div className="flex flex-col">
@@ -164,9 +223,18 @@ const OfferForm = () => {
                     onChange={(e) =>
                         handleCustomerChange("name", e.target.value)
                     }
-                    className="border border-gray-300 p-2 rounded"
+                    className={`p-2 rounded border ${
+                        formErrors.customerName
+                            ? "border-red-500"
+                            : "border-gray-300"
+                    }`}
                     placeholder="Max Mustermann"
                 />
+                {formErrors.customerName && (
+                    <p className="text-sm text-red-500 mt-1">
+                        {formErrors.customerName}
+                    </p>
+                )}
             </div>
 
             <div className="flex flex-col">
@@ -235,7 +303,11 @@ const OfferForm = () => {
             {/* Position hinzufügen */}
             <div className="border-t pt-4 mt-4 space-y-4">
                 <h3 className="font-semibold text-lg mb-2">Neue Position</h3>
-
+                {formErrors.positions && (
+                    <p className="text-sm text-red-500 mb-2">
+                        {formErrors.positions}
+                    </p>
+                )}
                 <div className="flex flex-col ">
                     <label htmlFor="label" className="font-medium">
                         Bezeichnung
@@ -244,12 +316,21 @@ const OfferForm = () => {
                         id="label"
                         type="text"
                         placeholder="Bezeichnung"
-                        className="border border-gray-300 p-2 rounded"
+                        className={`p-2 rounded border ${
+                            positionErrors.label
+                                ? "border-red-500"
+                                : "border-gray-300"
+                        }`}
                         value={newPosition.label}
                         onChange={(e) =>
                             handlePositionChange("label", e.target.value)
                         }
                     />
+                    {positionErrors.label && (
+                        <p className="text-sm text-red-500 mt-1">
+                            {positionErrors.label}
+                        </p>
+                    )}
                 </div>
 
                 <div className="flex flex-col ">
@@ -259,13 +340,23 @@ const OfferForm = () => {
                     <input
                         id="quantity"
                         type="number"
+                        min={1}
                         placeholder="Menge"
-                        className="border border-gray-300 p-2 rounded"
+                        className={`p-2 rounded border ${
+                            positionErrors.quantity
+                                ? "border-red-500"
+                                : "border-gray-300"
+                        }`}
                         value={newPosition.quantity}
                         onChange={(e) =>
                             handlePositionChange("quantity", e.target.value)
                         }
                     />
+                    {positionErrors.quantity && (
+                        <p className="text-sm text-red-500 mt-1">
+                            {positionErrors.quantity}
+                        </p>
+                    )}
                 </div>
 
                 <div className="flex flex-col ">
@@ -274,7 +365,11 @@ const OfferForm = () => {
                     </label>
                     <select
                         id="unit"
-                        className="border border-gray-300 p-2 rounded"
+                        className={`p-2 rounded border ${
+                            positionErrors.unit
+                                ? "border-red-500"
+                                : "border-gray-300"
+                        }`}
                         value={newPosition.unit}
                         onChange={(e) =>
                             handlePositionChange("unit", e.target.value)
@@ -283,6 +378,11 @@ const OfferForm = () => {
                         <option value="stunde">Stunde</option>
                         <option value="meter">Meter</option>
                     </select>
+                    {positionErrors.unit && (
+                        <p className="text-sm text-red-500 mt-1">
+                            {positionErrors.unit}
+                        </p>
+                    )}
                 </div>
 
                 <div className="flex flex-col ">
@@ -292,13 +392,24 @@ const OfferForm = () => {
                     <input
                         id="unitPrice"
                         type="number"
+                        min={0}
+                        step={0.01}
                         placeholder="Einzelpreis"
-                        className="border border-gray-300 p-2 rounded"
+                        className={`p-2 rounded border ${
+                            positionErrors.unitPrice
+                                ? "border-red-500"
+                                : "border-gray-300"
+                        }`}
                         value={newPosition.unitPrice}
                         onChange={(e) =>
                             handlePositionChange("unitPrice", e.target.value)
                         }
                     />
+                    {positionErrors.unitPrice && (
+                        <p className="text-sm text-red-500 mt-1">
+                            {positionErrors.unitPrice}
+                        </p>
+                    )}
                 </div>
 
                 {/* optional: Material */}
