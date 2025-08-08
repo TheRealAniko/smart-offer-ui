@@ -1,5 +1,5 @@
 import { type Position, type Customer, type Offer } from "smart-offer-types";
-import { useState } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { SquarePen, Delete } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
 import { toast } from "react-toastify";
@@ -49,6 +49,86 @@ const OfferForm = () => {
     const [newPosition, setNewPosition] = useState<Position>(initialPosition);
     const [formErrors, setFormErrors] = useState<FormErrors>({});
     const [positionErrors, setPositionErrors] = useState<PositionErrors>({});
+    const [isSaving, setIsSaving] = useState(false);
+
+    const titleRef = useRef<HTMLInputElement>(null);
+    const customerNameRef = useRef<HTMLInputElement>(null);
+    const labelRef = useRef<HTMLInputElement>(null);
+
+    const hasFormErrors = Object.keys(formErrors).length > 0;
+
+    const isFormFieldValid = useCallback(
+        (field: keyof FormErrors): boolean => {
+            switch (field) {
+                case "title":
+                    return offer.title.trim() !== "";
+                case "customerName":
+                    return offer.customer.name.trim() !== "";
+                case "positions":
+                    return offer.positions.length > 0;
+                default:
+                    return true;
+            }
+        },
+        [offer]
+    );
+
+    // Validierung der Positionen
+    const isPositionFieldValid = useCallback(
+        (field: keyof PositionErrors): boolean => {
+            switch (field) {
+                case "label":
+                    return newPosition.label.trim() !== "";
+                case "quantity":
+                    return newPosition.quantity > 0;
+                case "unit":
+                    return newPosition.unit.trim() !== "";
+                case "unitPrice":
+                    return (
+                        !isNaN(newPosition.unitPrice) &&
+                        newPosition.unitPrice >= 0
+                    );
+                default:
+                    return true;
+            }
+        },
+        [newPosition]
+    );
+
+    useEffect(() => {
+        let formHasChanged = false;
+        let positionHasChanged = false;
+
+        const newFormErrors = { ...formErrors };
+        (Object.keys(formErrors) as (keyof FormErrors)[]).forEach((field) => {
+            if (isFormFieldValid(field)) {
+                delete newFormErrors[field];
+                formHasChanged = true;
+            }
+        });
+        if (formHasChanged) {
+            setFormErrors(newFormErrors);
+        }
+        const newPositionErrors = { ...positionErrors };
+        (Object.keys(positionErrors) as (keyof PositionErrors)[]).forEach(
+            (field) => {
+                if (isPositionFieldValid(field)) {
+                    delete newPositionErrors[field];
+                    positionHasChanged = true;
+                }
+            }
+        );
+        if (positionHasChanged) {
+            setPositionErrors(newPositionErrors);
+        }
+    }, [
+        offer,
+        newPosition,
+        formErrors,
+        positionErrors,
+        isFormFieldValid,
+        isPositionFieldValid,
+    ]);
 
     const handleOfferChange = (field: keyof Offer, value: string) => {
         setOffer((prev) => ({
@@ -157,6 +237,27 @@ const OfferForm = () => {
             errors.positions = "Mindestens eine Position ist erforderlich.";
         }
         setFormErrors(errors);
+
+        // Fokus auf das erste fehlerhafte Feld setzen
+        if (errors.title && titleRef.current) {
+            titleRef.current?.scrollIntoView({
+                behavior: "smooth",
+                block: "center",
+            });
+            titleRef.current?.focus();
+        } else if (errors.customerName && customerNameRef.current) {
+            customerNameRef.current?.scrollIntoView({
+                behavior: "smooth",
+                block: "center",
+            });
+            customerNameRef.current?.focus();
+        } else if (errors.positions && labelRef.current) {
+            labelRef.current?.scrollIntoView({
+                behavior: "smooth",
+                block: "center",
+            });
+            labelRef.current?.focus();
+        }
         return Object.keys(errors).length === 0;
     };
 
@@ -164,29 +265,35 @@ const OfferForm = () => {
         // Validierung durchführen
         if (!validateForm()) return;
 
-        // Neue ID generieren
-        const offerWithId = {
-            ...offer,
-            id: offer.id === "temp-id" ? uuidv4() : offer.id,
-        };
+        setIsSaving(true);
 
-        // Angebot aus localStorage laden (falls es existiert)
-        const storedOffers = localStorage.getItem("offers");
-        const parsedOffers: Offer[] = storedOffers
-            ? JSON.parse(storedOffers)
-            : [];
+        try {
+            // Neue ID generieren
+            const offerWithId = {
+                ...offer,
+                id: offer.id === "temp-id" ? uuidv4() : offer.id,
+            };
 
-        // Aktuelles Angebot hinzufügen oder aktualisieren
-        const updatedOffers = [...parsedOffers, offerWithId];
+            // Angebot aus localStorage laden (falls es existiert)
+            const storedOffers = localStorage.getItem("offers");
+            const parsedOffers: Offer[] = storedOffers
+                ? JSON.parse(storedOffers)
+                : [];
 
-        // Angebote in localStorage speichern
-        localStorage.setItem("offers", JSON.stringify(updatedOffers));
+            // Aktuelles Angebot hinzufügen oder aktualisieren
+            const updatedOffers = [...parsedOffers, offerWithId];
 
-        //UI Feedback
-        toast.success("Angebot erfolgreich gespeichert!");
+            // Angebote in localStorage speichern
+            localStorage.setItem("offers", JSON.stringify(updatedOffers));
 
-        // Formular zurücksetzen
-        setOffer(initialOffer);
+            //UI Feedback
+            toast.success("Angebot erfolgreich gespeichert!");
+
+            // Formular zurücksetzen
+            setOffer({ ...initialOffer, createdAt: new Date() });
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     return (
@@ -196,6 +303,7 @@ const OfferForm = () => {
                     Angebotstitel
                 </label>
                 <input
+                    ref={titleRef}
                     id="title"
                     type="text"
                     value={offer.title}
@@ -217,6 +325,7 @@ const OfferForm = () => {
                     Kundenname
                 </label>
                 <input
+                    ref={customerNameRef}
                     id="customerName"
                     type="text"
                     value={offer.customer.name}
@@ -313,6 +422,7 @@ const OfferForm = () => {
                         Bezeichnung
                     </label>
                     <input
+                        ref={labelRef}
                         id="label"
                         type="text"
                         placeholder="Bezeichnung"
@@ -531,8 +641,9 @@ const OfferForm = () => {
                 <button
                     type="button"
                     onClick={saveOffer}
-                    className="rounded bg-green-600 hover:bg-green-700 py-2 px-6 text-white">
-                    Angebot speichern
+                    disabled={isSaving || hasFormErrors}
+                    className="rounded bg-green-600 hover:bg-green-700 py-2 px-6 text-white disabled:bg-gray-400 disabled:cursor-not-allowed">
+                    {isSaving ? "Speichert..." : "Speichern"}
                 </button>
             </div>
         </form>
