@@ -47,6 +47,7 @@ const OfferForm = () => {
         },
         positions: [],
         createdAt: new Date(),
+        totalPrice: 0,
     };
 
     const [offer, setOffer] = useState<Offer>(initialOffer);
@@ -315,6 +316,7 @@ const OfferForm = () => {
             const offerWithId = {
                 ...offer,
                 id: offer.id === "temp-id" ? uuidv4() : offer.id,
+                totalPrice: calculateTotal(),
             };
             const storedOffers = localStorage.getItem("offers");
             const parsedOffers: Offer[] = storedOffers
