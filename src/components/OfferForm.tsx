@@ -20,7 +20,40 @@ type PositionErrors = {
 };
 type Step = 1 | 2 | 3 | 4;
 
-const OfferForm = () => {
+type Props = {
+    initialData?: Offer | null; // Optional initial data for editing
+    onSaveComplete?: () => void;
+};
+
+const OfferForm = ({ initialData, onSaveComplete }: Props) => {
+    const initialOffer: Offer = {
+        id: "temp-id",
+        title: "",
+        customer: {
+            name: "",
+            email: "",
+            phone: "",
+            address: "",
+            contactPerson: "",
+        },
+        positions: [],
+        createdAt: new Date(),
+        totalPrice: 0, // 👈 wichtig
+    };
+
+    const [offer, setOffer] = useState<Offer>(
+        initialData
+            ? {
+                  ...initialData,
+                  positions: initialData.positions.map((p) => ({
+                      ...p,
+                      unitPrice: Number(p.unitPrice),
+                      quantity: Number(p.quantity),
+                  })),
+              }
+            : initialOffer
+    );
+
     const initialPosition: Position = {
         label: "",
         quantity: 1,
@@ -35,22 +68,6 @@ const OfferForm = () => {
         },
     };
 
-    const initialOffer: Offer = {
-        id: "temp-id",
-        title: "",
-        customer: {
-            name: "",
-            email: "",
-            phone: "",
-            address: "",
-            contactPerson: "",
-        },
-        positions: [],
-        createdAt: new Date(),
-        totalPrice: 0,
-    };
-
-    const [offer, setOffer] = useState<Offer>(initialOffer);
     const [newPosition, setNewPosition] = useState<Position>(initialPosition);
     const [formErrors, setFormErrors] = useState<FormErrors>({});
     const [positionErrors, setPositionErrors] = useState<PositionErrors>({});
@@ -310,24 +327,39 @@ const OfferForm = () => {
     };
 
     const saveOffer = () => {
-        if (!validateAllBeforeSave()) return; // nur hier die Gesamtprüfung
+        if (!validateAllBeforeSave()) return;
         setIsSaving(true);
         try {
-            const offerWithId = {
-                ...offer,
-                id: offer.id === "temp-id" ? uuidv4() : offer.id,
-                totalPrice: calculateTotal(),
-            };
             const storedOffers = localStorage.getItem("offers");
             const parsedOffers: Offer[] = storedOffers
                 ? JSON.parse(storedOffers)
                 : [];
-            const updatedOffers = [...parsedOffers, offerWithId];
+
+            let updatedOffers: Offer[];
+            if (parsedOffers.some((o) => o.id === offer.id)) {
+                // Update
+                updatedOffers = parsedOffers.map((o) =>
+                    o.id === offer.id
+                        ? { ...offer, totalPrice: calculateTotal() }
+                        : o
+                );
+            } else {
+                // Neues Angebot
+                const newOffer = {
+                    ...offer,
+                    id: offer.id === "temp-id" ? uuidv4() : offer.id,
+                    totalPrice: calculateTotal(),
+                };
+                updatedOffers = [...parsedOffers, newOffer];
+            }
+
             localStorage.setItem("offers", JSON.stringify(updatedOffers));
             toast.success("Angebot erfolgreich gespeichert!");
-            setOffer({ ...initialOffer, createdAt: new Date() });
-            setFormErrors({}); // Fehler leeren
-            setCurrentStep(1); // optional zurück zum Start
+
+            onSaveComplete?.(); // z.B. zurück zur Liste
+            setOffer({ ...initialOffer, createdAt: new Date(), totalPrice: 0 });
+            setFormErrors({});
+            setCurrentStep(1);
         } finally {
             setIsSaving(false);
         }

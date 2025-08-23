@@ -3,9 +3,10 @@ import { useEffect, useState } from "react";
 
 type Props = {
     onSelect: (offer: Offer) => void; // Callback when an offer is selected
+    onEdit: (offer: Offer) => void;
 };
 
-const OffersList = ({ onSelect }: Props) => {
+const OffersList = ({ onSelect, onEdit }: Props) => {
     const [offers, setOffers] = useState<Offer[]>([]);
 
     useEffect(() => {
@@ -56,6 +57,37 @@ const OffersList = ({ onSelect }: Props) => {
                                 <div className="font-semibold">
                                     {(offer.totalPrice ?? 0).toFixed(2)} €
                                 </div>
+                            </div>
+                            {/* Buttons rechts */}
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onEdit(offer);
+                                    }}
+                                    className="text-blue-600 hover:underline text-sm">
+                                    Edit
+                                </button>
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        const stored =
+                                            localStorage.getItem("offers");
+                                        if (!stored) return;
+                                        const parsed: Offer[] =
+                                            JSON.parse(stored);
+                                        const updated = parsed.filter(
+                                            (o) => o.id !== offer.id
+                                        );
+                                        localStorage.setItem(
+                                            "offers",
+                                            JSON.stringify(updated)
+                                        );
+                                        setOffers(updated); // wichtig, damit UI neu rendert
+                                    }}
+                                    className="text-red-600 hover:underline text-sm">
+                                    Delete
+                                </button>
                             </div>
                         </li>
                     ))}
