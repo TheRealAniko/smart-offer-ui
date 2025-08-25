@@ -6,6 +6,7 @@ import ReviewStep from "./steps/ReviewSteps";
 import OfferStep from "./steps/OfferStep";
 import CustomerStep from "./steps/CustomerStep";
 import PositionsStep from "./steps/PositionsStep";
+import { useNavigate } from "react-router";
 
 type FormErrors = {
     title?: string;
@@ -26,6 +27,7 @@ type Props = {
 };
 
 const OfferForm = ({ initialData, onSaveComplete }: Props) => {
+    const navigate = useNavigate();
     const initialOffer: Offer = {
         id: "temp-id",
         title: "",
@@ -355,6 +357,7 @@ const OfferForm = ({ initialData, onSaveComplete }: Props) => {
 
             localStorage.setItem("offers", JSON.stringify(updatedOffers));
             toast.success("Angebot erfolgreich gespeichert!");
+            navigate("/");
 
             onSaveComplete?.(); // z.B. zurück zur Liste
             setOffer({ ...initialOffer, createdAt: new Date(), totalPrice: 0 });
