@@ -34,7 +34,7 @@ const HomePage = () => {
                         sie.
                     </p>
                     <button
-                        onClick={() => navigate("/angbote")}
+                        onClick={() => navigate("/angebote")}
                         className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
                         Anzeigen
                     </button>

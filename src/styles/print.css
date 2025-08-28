@@ -1,0 +1,25 @@
+/* Papierformat */
+@page {
+    size: A4;
+    margin: 12mm;
+}
+
+/* Verhindert unschöne Tabellenumbrüche */
+.break-inside-avoid {
+    break-inside: avoid;
+    page-break-inside: avoid; /* Fallback */
+}
+
+/* Druck-Optimierung */
+@media print {
+    /* Navigation, Buttons etc. ausblenden */
+    .print-hidden {
+        display: none !important;
+    }
+
+    /* Links ohne Farbe/Unterstreichung */
+    a {
+        color: #000 !important;
+        text-decoration: none !important;
+    }
+}
