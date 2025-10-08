@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@smartoffer/types": "file:../SMART-OFFER-TYPES",
     "@tailwindcss/vite": "^4.1.11",
     "lucide": "^0.536.0",
     "lucide-react": "^0.536.0",
