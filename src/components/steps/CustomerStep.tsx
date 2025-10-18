@@ -1,8 +1,8 @@
-import { type Customer } from "smart-offer-types";
+import type { OfferFormState } from "../OfferForm";
 
 type Props = {
-    customer: Customer;
-    onChange: (field: keyof Customer, value: string) => void;
+    customer: OfferFormState["customer"];
+    onChange: (field: keyof OfferFormState["customer"], value: string) => void;
     formErrors: { customerName?: string };
     customerNameRef: React.RefObject<HTMLInputElement | null>;
 };

@@ -7,6 +7,8 @@ import OfferStep from "./steps/OfferStep";
 import CustomerStep from "./steps/CustomerStep";
 import PositionsStep from "./steps/PositionsStep";
 import { useNavigate } from "react-router";
+import { useCompanyProfile } from "../company/useCompanyProfile";
+import { getOfferDefaultsFromProfile } from "../company/companyProfileStore";
 
 type FormErrors = {
     title?: string;
@@ -26,9 +28,27 @@ type Props = {
     onSaveComplete?: () => void;
 };
 
+// UI-spezifischer Zustand für das Formular (ohne Branded Types)
+export type OfferFormState = {
+    id: string;
+    title: string;
+    customer: {
+        name: string;
+        email: string; // normale Zeichenkette, kein Email-Type
+        phone: string;
+        address: string;
+        contactPerson: string;
+    };
+    positions: Position[];
+    createdAt: Date;
+    totalPrice: number;
+    taxRatePct?: number;
+    footer?: string;
+};
+
 const OfferForm = ({ initialData, onSaveComplete }: Props) => {
     const navigate = useNavigate();
-    const initialOffer: Offer = {
+    const initialOffer: OfferFormState = {
         id: "temp-id",
         title: "",
         customer: {
@@ -43,15 +63,23 @@ const OfferForm = ({ initialData, onSaveComplete }: Props) => {
         totalPrice: 0, // 👈 wichtig
     };
 
-    const [offer, setOffer] = useState<Offer>(
+    const [offer, setOffer] = useState<OfferFormState>(
         initialData
             ? {
                   ...initialData,
+                  customer: {
+                      name: initialData.customer.name ?? "",
+                      email: initialData.customer.email ?? "",
+                      phone: initialData.customer.phone ?? "",
+                      address: initialData.customer.address ?? "",
+                      contactPerson: initialData.customer.contactPerson ?? "",
+                  },
                   positions: initialData.positions.map((p) => ({
                       ...p,
                       unitPrice: Number(p.unitPrice),
                       quantity: Number(p.quantity),
                   })),
+                  totalPrice: initialData.totalPrice ?? 0,
               }
             : initialOffer
     );
@@ -75,6 +103,8 @@ const OfferForm = ({ initialData, onSaveComplete }: Props) => {
     const [positionErrors, setPositionErrors] = useState<PositionErrors>({});
     const [isSaving, setIsSaving] = useState(false);
     const [currentStep, setCurrentStep] = useState<Step>(1);
+
+    const { profile } = useCompanyProfile();
 
     const titleRef = useRef<HTMLInputElement>(null);
     const customerNameRef = useRef<HTMLInputElement>(null);
@@ -198,7 +228,23 @@ const OfferForm = ({ initialData, onSaveComplete }: Props) => {
         isPositionFieldValid,
     ]);
 
-    const handleOfferChange = (field: keyof Offer, value: string) => {
+    useEffect(() => {
+        const { defaultTaxRatePct, defaultFooterTemplate } =
+            getOfferDefaultsFromProfile(profile);
+
+        // Nur übernehmen, wenn Feld noch leer ist
+        setOffer((prev: OfferFormState) => ({
+            ...prev,
+            taxRatePct:
+                prev.taxRatePct === 0 ? defaultTaxRatePct : prev.taxRatePct,
+            footer:
+                (prev.footer ?? "").trim() === ""
+                    ? defaultFooterTemplate
+                    : prev.footer,
+        }));
+    }, [profile]);
+
+    const handleOfferChange = (field: keyof OfferFormState, value: string) => {
         setOffer((prev) => ({
             ...prev,
             [field]: value,
@@ -342,7 +388,10 @@ const OfferForm = ({ initialData, onSaveComplete }: Props) => {
                 // Update
                 updatedOffers = parsedOffers.map((o) =>
                     o.id === offer.id
-                        ? { ...offer, totalPrice: calculateTotal() }
+                        ? ({
+                              ...offer,
+                              totalPrice: calculateTotal(),
+                          } as unknown as Offer)
                         : o
                 );
             } else {
@@ -352,7 +401,7 @@ const OfferForm = ({ initialData, onSaveComplete }: Props) => {
                     id: offer.id === "temp-id" ? uuidv4() : offer.id,
                     totalPrice: calculateTotal(),
                 };
-                updatedOffers = [...parsedOffers, newOffer];
+                updatedOffers = [...parsedOffers, newOffer as unknown as Offer];
             }
 
             localStorage.setItem("offers", JSON.stringify(updatedOffers));
