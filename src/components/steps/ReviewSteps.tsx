@@ -1,7 +1,7 @@
-import { type Offer } from "smart-offer-types";
+import type { OfferFormState } from "../OfferForm";
 
 type Props = {
-    offer: Offer;
+    offer: OfferFormState;
     onEditStep: (step: 1 | 2 | 3) => void;
     onSave: () => void;
     isSaving: boolean;

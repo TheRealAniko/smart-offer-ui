@@ -1,9 +1,9 @@
-import { type Offer } from "smart-offer-types";
 import type { RefObject } from "react";
+import type { OfferFormState } from "../OfferForm.js";
 
 type Props = {
-    offer: Offer;
-    onChange: (field: keyof Offer, value: string) => void;
+    offer: OfferFormState;
+    onChange: (field: keyof OfferFormState, value: string) => void;
     formErrors: { title?: string };
     titleRef: RefObject<HTMLInputElement | null>;
 };
