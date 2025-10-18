@@ -48,4 +48,13 @@
         font-size: 12px;
         color: #444;
     }
+
+    .print-footer {
+        margin-top: 40px;
+        border-top: 1px solid #ddd;
+        padding-top: 12px;
+        font-size: 12px;
+        color: #444;
+        white-space: pre-line; /* behält Zeilenumbrüche */
+    }
 }
