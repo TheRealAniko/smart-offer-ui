@@ -1,5 +1,6 @@
 import { forwardRef } from "react";
 import { type Offer } from "smart-offer-types";
+import { OfferPrintHeader } from "../print/OfferPrintHeader";
 
 const OfferDocument = forwardRef<HTMLDivElement, { offer: Offer }>(
     ({ offer }, ref) => {
@@ -42,26 +43,7 @@ const OfferDocument = forwardRef<HTMLDivElement, { offer: Offer }>(
                 ref={ref}
                 className="mx-auto print:w-[210mm] bg-white p-8 print:p-0">
                 {/* Header mit Logo und Firmendaten */}
-                {/* <header className="flex justify-between items-center mb-8">
-                    <div>
-                        <h1 className="text-3xl font-bold mb-2">
-                            {offer.company.name || "Dein Firmenname"}
-                        </h1>
-                        <p className="text-sm text-gray-600">
-                            {offer.company.address || "Firmenadresse"}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                            {offer.company.contact || "Kontaktinformationen"}
-                        </p>
-                    </div>
-                    {offer.company.logoUrl && (
-                        <img
-                            src={offer.company.logoUrl}
-                            alt="Firmenlogo"
-                            className="h-16 w-16 object-contain"
-                        />
-                    )}
-                </header> */}
+                <OfferPrintHeader />
 
                 {/* Titel */}
                 <header className="mb-6">
