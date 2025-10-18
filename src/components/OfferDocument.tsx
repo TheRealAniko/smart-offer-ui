@@ -1,6 +1,8 @@
 import { forwardRef } from "react";
 import { type Offer } from "smart-offer-types";
 import { OfferPrintHeader } from "../print/OfferPrintHeader";
+import { replaceFooterTokens } from "../print/replaceFooterTokens";
+import { useCompanyProfile } from "../company/useCompanyProfile";
 
 const OfferDocument = forwardRef<HTMLDivElement, { offer: Offer }>(
     ({ offer }, ref) => {
@@ -37,6 +39,14 @@ const OfferDocument = forwardRef<HTMLDivElement, { offer: Offer }>(
                 style: "currency",
                 currency,
             }).format(value);
+
+        const { profile } = useCompanyProfile();
+
+        const renderedFooter = replaceFooterTokens(
+            offer.footer ?? "",
+            profile,
+            offer
+        );
 
         return (
             <div
@@ -121,6 +131,9 @@ const OfferDocument = forwardRef<HTMLDivElement, { offer: Offer }>(
                         </tfoot>
                     </table>
                 </section>
+                <footer className="print-footer">
+                    <p>{renderedFooter}</p>
+                </footer>
             </div>
         );
     }
