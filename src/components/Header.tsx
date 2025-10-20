@@ -29,6 +29,11 @@ const Header = () => {
                     className={linkClasses("/angebote")}>
                     Angebote
                 </button>
+                <button
+                    onClick={() => navigate("/settings/company")}
+                    className={linkClasses("/settings/company")}>
+                    Einstellungen
+                </button>
             </nav>
         </header>
     );

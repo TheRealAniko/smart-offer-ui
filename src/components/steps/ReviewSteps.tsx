@@ -1,4 +1,4 @@
-import type { OfferFormState } from "../OfferForm";
+import type { OfferFormState } from "../../types/offerForm";
 
 type Props = {
     offer: OfferFormState;

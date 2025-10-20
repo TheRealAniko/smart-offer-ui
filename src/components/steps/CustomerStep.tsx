@@ -1,8 +1,8 @@
-import type { OfferFormState } from "../OfferForm";
+import type { OfferFormState } from "../../types/offerForm";
 
 type Props = {
     customer: OfferFormState["customer"];
-    onChange: (field: keyof OfferFormState["customer"], value: string) => void;
+    onChange: (field: string, value: string) => void;
     formErrors: { customerName?: string };
     customerNameRef: React.RefObject<HTMLInputElement | null>;
 };
