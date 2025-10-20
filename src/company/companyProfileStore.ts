@@ -29,3 +29,12 @@ export function getOfferDefaultsFromProfile(profile: CompanyProfile | null) {
         logoUrl: profile?.logoUrl ?? undefined,
     };
 }
+
+/** Speichert ein gültiges CompanyProfile im localStorage */
+export function saveCompanyProfile(profile: CompanyProfile) {
+    try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
+    } catch (e) {
+        console.error("Failed to save company profile:", e);
+    }
+}
